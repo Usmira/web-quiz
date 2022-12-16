@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
-from jwt_utils import build_token
-
+from jwt_utils import build_token,decode_token
+from questions import DefaultPostQuestion
 
 AUTH_PASSWORD = "flask2023"
 
@@ -10,7 +10,8 @@ CORS(app)
 
 @app.route('/')
 def hello_world():
-    return "Hello world"
+    result = "hello world"
+    return {"result":result}
 
 @app.route('/quiz-info', methods=['GET'])
 def GetQuizInfo():
@@ -25,6 +26,17 @@ def PostPassword():
         return {"token": token}
     else:
         return 'Unauthorized', 401
+
+@app.route('/questions',methods=['POST'])
+def PostQuestion():
+    # 1) Récupération et décodage du token :
+    # token = request.headers.get('Authorization')
+    ### !!!!! ATTENTION : Comment décoder le token ?? car la fonction decode du jwt ne fonctionne pas...
+
+    # 2) Poster nouvelle question dans la BDD et récupérer ID
+    question = request.get_json()
+    quest_id = DefaultPostQuestion(question)
+    return {"id":quest_id}, 200
 
 if __name__ == "__main__":
     app.run()
