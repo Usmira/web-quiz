@@ -25,8 +25,12 @@ def createSQLRequestInsert(pythonobject):
     sqlRequest = 'INSERT INTO Questions ' + DB_COLUMNS + ' VALUES (' + str(pythonobject.position) + ',"' + pythonobject.title + '","' + pythonobject.text + '","' + pythonobject.image + '","' + pythonobject.a1 + '","' + pythonobject.a2 + '","' + pythonobject.a3 + '","' + pythonobject.a4 + '",' + str(pythonobject.trueA) + ');'
     return sqlRequest
 
-def getPositions(tableName):
+def getAllPositions(tableName):
     sqlRequest = "SELECT Position FROM " + tableName + ";"  
+    return sqlRequest
+
+def get1Position(questionId):
+    sqlRequest = "SELECT Position FROM Questions WHERE ID = " + str(questionId) + ";"
     return sqlRequest
 
 def incrementPosition(current_pos):
@@ -41,3 +45,11 @@ def truncateTable():
     sqlRequest1 = "DELETE FROM Questions;"
     sqlRequest2 = "DELETE FROM sqlite_sequence WHERE name = 'Questions';"
     return sqlRequest1,sqlRequest2
+
+def delete1Question(questionId):
+    sqlRequest = "DELETE FROM Questions WHERE ID = " + str(questionId) + ";"
+    return sqlRequest
+
+def decIncrementPosition(current_pos):
+    sqlRequest = "UPDATE Questions SET Position = Position - 1 WHERE Position > " + str(current_pos)
+    return sqlRequest

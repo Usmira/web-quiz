@@ -58,7 +58,7 @@ def DefaultPostQuestion(jsonQuestion):
     # B) Créer requete à partir de cet objet
     sqlInsert = createSQLRequestInsert(questionObject)
     # C) Inserer dans la BDD
-    insertion_result = insertData(sqlInsert)
+    insertData(sqlInsert)
     # D) En finalité, la requete doit renvoyer l'ID de la question récement insérée :
     last_id = selectData(getID())[0][0]
     return last_id
@@ -103,7 +103,7 @@ def checkPosition(jsonQuestion): # add jsonQuestion
     current_pos = jsonQuestion["position"]
     # Cette fonction doit réaliser une query pour vérifier les positions des différentes questions existantes
     # Première chose à vérifier : la position est inférieur ou égale à la taille + 1 de la totalité des questions
-    positions = selectData(getPositions("Questions"))
+    positions = selectData(getAllPositions("Questions"))
     if current_pos > len(positions) + 1:
         # Cas de figure ou la position dépasse le nombre de question après l'insertion de cette dernière
         # On traitera l'erreur plutot dans la fonction DefaultPostQuestion()
@@ -119,4 +119,21 @@ def DeleteAllQuestion():
     sqlRequest1, sqlRequest2 = truncateTable()
     insertData(sqlRequest1)
     insertData(sqlRequest2)
+    return 1
+
+def DeleteAQuestion(questionId):
+    # 1) On ajuste les valeurs des positions suppérieure à la position de la question que l'on va supprimer
+    AjustPosition(questionId)
+    # 2) Puis on supprime la question en fonction de l'ID selectionné
+    sqlRequest = delete1Question(questionId)
+    insertData(sqlRequest)
+    return 1
+
+def AjustPosition(questionId):
+    # 1) On récupère la position de la question que l'on souhaite supprimer
+    current_pos = selectData(get1Position(questionId))[0][0]
+    # 2) On vérifie s'il existe des questions avec un position supérieur à celle que l'on supprime 
+    # Si oui, on ajuste leur position : pos = pos - 1
+    sqlRequest = decIncrementPosition(current_pos)
+    insertData(sqlRequest)
     return 1

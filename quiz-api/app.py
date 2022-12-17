@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion
+from questions import DefaultPostQuestion, DeleteAllQuestion, DeleteAQuestion
 
 AUTH_PASSWORD = "flask2023"
 
@@ -49,7 +49,18 @@ def DeleteAllQuestions():
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token)  
         DeleteAllQuestion()
-        return {"info":"Toutes les questions ont été supprimées"} ,204
+        return {} ,204
+    except:
+        return 'Unauthorized', 401
+
+@app.route('/questions/<questionId>',methods = ['DELETE'])
+def DeleteQuestionByID(questionId):
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token) 
+        DeleteAQuestion(questionId)
+        return {}, 204
     except:
         return 'Unauthorized', 401
 
