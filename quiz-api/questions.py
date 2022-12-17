@@ -114,3 +114,9 @@ def checkPosition(jsonQuestion): # add jsonQuestion
         insertData(SQLRequest)
     # Pour le dernier cas il ne se passe rien on fait juste un insert classique donc on laisse la fonction DefaultPostQuestion() s'en occuper
     return True
+
+def DeleteAllQuestion():
+    sqlRequest1, sqlRequest2 = truncateTable()
+    insertData(sqlRequest1)
+    insertData(sqlRequest2)
+    return 1

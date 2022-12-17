@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion
+from questions import DefaultPostQuestion, DeleteAllQuestion
 
 AUTH_PASSWORD = "flask2023"
 
@@ -29,14 +29,29 @@ def PostPassword():
 
 @app.route('/questions',methods=['POST'])
 def PostQuestion():
-    # 1) Récupération et décodage du token :
-    # token = request.headers.get('Authorization')
-    ### !!!!! ATTENTION : Comment décoder le token ?? car la fonction decode du jwt ne fonctionne pas...
-
-    # 2) Poster nouvelle question dans la BDD et récupérer ID
-    question = request.get_json()
-    quest_id = DefaultPostQuestion(question)
-    return {"id":quest_id}, 200
+    # 1) Try/except sur la récupération et le décodage du token :
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token)                        
+        # 2) Poster nouvelle question dans la BDD et récupérer ID
+        question = request.get_json()
+        quest_id = DefaultPostQuestion(question)
+        return {"id":quest_id}, 200
+    except:
+        # 2) Connexion refusée par le serveur
+        return 'Unauthorized', 401
+    
+@app.route('/questions/all',methods=['DELETE'])
+def DeleteAllQuestions():
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token)  
+        DeleteAllQuestion()
+        return {"info":"Toutes les questions ont été supprimées"} ,204
+    except:
+        return 'Unauthorized', 401
 
 if __name__ == "__main__":
     app.run()

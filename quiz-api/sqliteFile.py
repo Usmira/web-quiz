@@ -36,3 +36,8 @@ def incrementPosition(current_pos):
 def getID():
     sqlRequest = "SELECT ID FROM Questions ORDER BY ID DESC LIMIT 1"
     return sqlRequest
+
+def truncateTable():
+    sqlRequest1 = "DELETE FROM Questions;"
+    sqlRequest2 = "DELETE FROM sqlite_sequence WHERE name = 'Questions';"
+    return sqlRequest1,sqlRequest2
