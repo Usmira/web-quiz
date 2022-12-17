@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion, DeleteAQuestion
+from questions import DefaultPostQuestion, DeleteAllQuestion, DeleteAQuestion, ModifyAQuestion
 
 AUTH_PASSWORD = "flask2023"
 
@@ -37,7 +37,7 @@ def PostQuestion():
         # 2) Poster nouvelle question dans la BDD et récupérer ID
         question = request.get_json()
         quest_id = DefaultPostQuestion(question)
-        return {"id":quest_id}, 200
+        return {"id":quest_id}, 200                             # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
     except:
         # 2) Connexion refusée par le serveur
         return 'Unauthorized', 401
@@ -59,7 +59,23 @@ def DeleteQuestionByID(questionId):
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token) 
-        DeleteAQuestion(questionId)
+        result = DeleteAQuestion(questionId)
+        if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+            return 'Not Found', 404
+        return {}, 204
+    except:
+        return 'Unauthorized', 401
+
+@app.route('/questions/<quesionId>',methods=["PUT"])
+def ModifyQuestionByID(quesionId):
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token) 
+        question = request.get_json()
+        result = ModifyAQuestion(quesionId,question)
+        if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+            return 'Not Found', 404
         return {}, 204
     except:
         return 'Unauthorized', 401
