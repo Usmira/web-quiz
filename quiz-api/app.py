@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition
+from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation
 
 AUTH_PASSWORD = "flask2023"
 
@@ -34,13 +34,14 @@ def PostQuestion():
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token)                        
-        # 2) Poster nouvelle question dans la BDD et récupérer ID
-        question = request.get_json()
-        quest_id = DefaultPostQuestion(question)
-        return {"id":quest_id}, 200                             # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
     except:
         # 2) Connexion refusée par le serveur
         return 'Unauthorized', 401
+    # 2) Poster nouvelle question dans la BDD et récupérer ID
+    question = request.get_json()
+    quest_id = DefaultPostQuestion(question)
+    return {"id":quest_id}, 200                             # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+
     
 @app.route('/questions/all',methods=['DELETE'])
 def DeleteAllQuestions():
@@ -87,7 +88,7 @@ def getQuestionByID(questionId):
         return 'Not Found', 404
     return jsonQuestion, 200
 
-@app.route('/questions',methods=['GET'])
+@app.route('/questions', methods=['GET'])
 def getQuestionByPosition():
     position = request.args.get('position')
     questionId = getIdbyPosition(position)
@@ -95,6 +96,14 @@ def getQuestionByPosition():
         return 'Not Found' , 404
     jsonQuestion = getAQuestion(questionId[0][0])
     return jsonQuestion, 200
+
+@app.route('/participations', methods=['POST'])
+def postParticipation():
+    participation = request.get_json()
+    payload_retour = defaultPostParticipation(participation)
+    if payload_retour == -2 :
+        return 'Bad request', 400
+    return payload_retour ,200
 
 if __name__ == "__main__":
     app.run()

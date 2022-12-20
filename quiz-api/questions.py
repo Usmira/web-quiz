@@ -3,6 +3,7 @@ from sqliteFile import *
 
 JSON_QUESTION_KEYS = ["title","text","image","position","possibleAnswers"]
 JSON_POSSIBLE_ANSWERS_KEYS = ["text","isCorrect"]
+JSON_PARTICIPATION_KEYS = ["playerName","answers"]
 DB_COLUMNS_LST = ['Position', 'Titre', 'Image', 'Texte']
 
 class Question:
@@ -169,7 +170,7 @@ def DeleteAllQuestion():
 
 def DeleteAQuestion(questionId):
     # Il faut vérifier que l'ID existe pour cette question
-    sqlRequest = getQuestionByID(questionId)
+    sqlRequest       = getQuestionByID(questionId)
     current_question = selectData(sqlRequest)
     # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
     if len(current_question) == 0 :
@@ -197,7 +198,7 @@ def AjustPosition(questionId):
 
 def ModifyAQuestion(questionId,jsonQuestion):
     # Il faut vérifier que l'ID existe pour cette question
-    sqlRequest = getQuestionByID(questionId)
+    sqlRequest       = getQuestionByID(questionId)
     current_question = selectData(sqlRequest)
     # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
     if len(current_question) == 0 :
@@ -230,19 +231,76 @@ def ModifyAQuestion(questionId,jsonQuestion):
 
 def getAQuestion(questionId):
     # (1) Récupération de la ligne qui correspond à la question dans la BDD
-    sqlRequest = getQuestionByIDwithoutID(questionId)
+    sqlRequest       = getQuestionByIDwithoutID(questionId)
     current_question = selectData(sqlRequest)  
     # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
     if len(current_question) == 0 :
         # Si la liste est vide, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
         return -2
     # (2) Maintenant qu'on est sûr que l'ID existe, il faut transformer les lignes des tables Questions et Reponses en JSON bien formaté
-    sqlRequest = getResponseByQuestionIDwithoutID(questionId)
+    sqlRequest      = getResponseByQuestionIDwithoutID(questionId)
     current_answers = selectData(sqlRequest)
-    jsonObject = tuplesTOjsonObject(current_question[0],current_answers)
+    jsonObject      = tuplesTOjsonObject(current_question[0],current_answers)
     return jsonObject
 
 def getIdbyPosition(questionPosition):
     sqlRequest = getIDwithPosition(questionPosition)
     questionId = selectData(sqlRequest)
     return questionId
+
+def defaultPostParticipation(participation):
+    #   (1) Vérifier la forme et le contenu du json envoyé en requete)
+    if not isJsonParticipationShapeOK(participation):
+        return -1
+    #   (2) Vérifier la taille de la valeurs associée à la clé answers de la participation (il faut récup le nombre de question dans la table question)
+    answers = participation["answers"]
+    sqlRequest = getAllPositions("Questions")
+    nb_questions = len(selectData(sqlRequest))
+    if len(answers) != nb_questions :
+        # Si la liste n'est pas de meme taille, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
+        return -2
+    #   (3) Préparer le résumé des bonnes réponses
+    score = 0
+    answersSummaries = []
+    for Q_pos in range (len(answers)):
+        iRep_pos = answers[Q_pos]
+        trueRep_pos = whereIsTrueRep(Q_pos + 1)
+        wasCorrect = False
+        if iRep_pos == trueRep_pos :
+            score += 1
+            wasCorrect = True
+        answersSummaries.append({
+            "correctAnswerPosition" : trueRep_pos, 
+            "wasCorrect"            : wasCorrect
+        })
+    playerName = participation["playerName"]
+    returned_payload = {"answersSummaries":answersSummaries,"playerName":playerName,"score":score}
+    # On n'oublie pas d'ajouter la participation dans la table Participations
+    sqlRequest = addAParticipation(playerName,score)
+    insertData(sqlRequest)
+    return returned_payload
+
+def isJsonParticipationShapeOK(jsonObject):
+    condition = True
+    cnt = 0
+    # Test sur les clés de niveau 1 :
+    while condition and cnt < len(JSON_PARTICIPATION_KEYS) :
+        if JSON_PARTICIPATION_KEYS[cnt] not in jsonObject:
+            condition = False
+        cnt += 1
+    return condition
+
+def whereIsTrueRep(questionPosition):
+    # Pour une question donnée on veut savoir quelle est la position de la réponse dans l'ordre des réponses
+    questionId = getIdbyPosition(questionPosition)
+    sqlRequest = getResponseByQuestionIDwithoutID(questionId[0][0])
+    responses  = selectData(sqlRequest)
+    cnt = 0
+    condition = True
+    responsePosition = 0 # j'initialise la position de la reponse à 0 dans le cas de figure où une question ne comporterait pas de bonne réponse (impossible car on a bien fait attention à ce cas de figure lorsque l'admin poste une nouvelle question)
+    while cnt < len(responses) and condition :
+        if responses[cnt][1] == 1:
+            condition = False
+            responsePosition = cnt + 1
+        cnt += 1
+    return responsePosition
