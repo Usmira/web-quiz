@@ -87,6 +87,6 @@ def getIDwithPosition(questionPosition):
     sqlRequest = "SELECT ID FROM Questions WHERE Position = " + str(questionPosition) + ";"
     return sqlRequest
 
-def addAParticipation(playerName,score):
-    sqlRequest = 'INSERT INTO Participations (PlayerName,Score) VALUES ("' + playerName + '",' + str(score) + ');' 
+def addAParticipation(playerName,score,date):
+    sqlRequest = 'INSERT INTO Participations (PlayerName,Score,Date) VALUES ("' + playerName + '",' + str(score) + ',"' + date + '");' 
     return sqlRequest

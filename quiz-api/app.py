@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation, DeleteAllParticipation
+from questions import quizInfo, DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation, DeleteAllParticipation
 
 AUTH_PASSWORD = "flask2023"
 
@@ -15,6 +15,7 @@ def hello_world():
 
 @app.route('/quiz-info', methods=['GET'])
 def GetQuizInfo():
+    payload_returned = quizInfo()
     return {"size": 0, "scores": []}, 200
 
 @app.route('/login', methods=["POST"])

@@ -1,5 +1,7 @@
 import json
 from sqliteFile import *
+from time import strftime
+from datetime import datetime as dt
 
 JSON_QUESTION_KEYS = ["title","text","image","position","possibleAnswers"]
 JSON_POSSIBLE_ANSWERS_KEYS = ["text","isCorrect"]
@@ -275,8 +277,10 @@ def defaultPostParticipation(participation):
         })
     playerName = participation["playerName"]
     returned_payload = {"answersSummaries":answersSummaries,"playerName":playerName,"score":score}
+    # Calcul de la date à laquelle on poste la réponse :
+    date = calcultimenow()
     # On n'oublie pas d'ajouter la participation dans la table Participations
-    sqlRequest = addAParticipation(playerName,score)
+    sqlRequest = addAParticipation(playerName,score,date)
     insertData(sqlRequest)
     return returned_payload
 
@@ -305,8 +309,18 @@ def whereIsTrueRep(questionPosition):
         cnt += 1
     return responsePosition
 
+def calcultimenow():
+    date =  dt.now()
+    return date.strftime("%d/%m/%Y %H-%M-%S")
+
 def DeleteAllParticipation():
     sqlRequest1, sqlRequest2 = truncateTable("Participations")
     insertData(sqlRequest1)
     insertData(sqlRequest2)
     return 1
+
+def quizInfo():
+
+    return 1
+
+print(calcultimenow())
