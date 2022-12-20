@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion, DeleteAQuestion, ModifyAQuestion
+from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition
 
 AUTH_PASSWORD = "flask2023"
 
@@ -79,6 +79,22 @@ def ModifyQuestionByID(quesionId):
         return {}, 204
     except:
         return 'Unauthorized', 401
+
+@app.route('/questions/<questionId>', methods=['GET'])
+def getQuestionByID(questionId):
+    jsonQuestion = getAQuestion(questionId)
+    if jsonQuestion == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+        return 'Not Found', 404
+    return jsonQuestion, 200
+
+@app.route('/questions',methods=['GET'])
+def getQuestionByPosition():
+    position = request.args.get('position')
+    questionId = getIdbyPosition(position)
+    if len(questionId) == 0 :
+        return 'Not Found' , 404
+    jsonQuestion = getAQuestion(questionId[0][0])
+    return jsonQuestion, 200
 
 if __name__ == "__main__":
     app.run()

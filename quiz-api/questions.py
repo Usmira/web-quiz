@@ -1,67 +1,68 @@
 import json
 from sqliteFile import *
 
-QUESTION_KEYS = ["title","text","image","position","possibleAnswers"]
-POSSIBLE_ANSWERS_KEYS = ["text","isCorrect"]
-NB_ANSWERS_MAX = 4 # Nombre max de réponses possibles par question (implémenté car les test postman laissent apparaitre des questions avec 3 réponses seulement)
+JSON_QUESTION_KEYS = ["title","text","image","position","possibleAnswers"]
+JSON_POSSIBLE_ANSWERS_KEYS = ["text","isCorrect"]
+DB_COLUMNS_LST = ['Position', 'Titre', 'Image', 'Texte']
 
 class Question:
     # Choix de pas mettre id dans l'objet python : car on ne reçoit pas d'ID du python mais de la BDD
-    def __init__(self, position:int, title:str, text:str, image:str, answer1:str, answer2:str, answer3:str, answer4:str, trueAnswer:int):
-        self.position = position
-        self.title = title
-        self.text = text
-        self.image = image
-        self.a1 = answer1
-        self.a2 = answer2
-        self.a3 = answer3
-        self.a4 = answer4
-        self.trueA = trueAnswer
+    def __init__(self, position:int, title:str, text:str, image:str):
+        self.position   = position
+        self.title      = title
+        self.text       = text
+        self.image      = image
 
-def jsonTOpythonobject(jsonfile):
-    pythonobject = json.loads(jsonfile)
-    return pythonobject
-
-def pythonobjectTOjson(pythonObject):
-    jsonobject = json.dumps(pythonObject.__dict__)
-    return jsonobject
+class Reponse:
+    def __init__(self, text:str, isCorrect:int, questionId:int):
+        self.text       = text
+        self.isCorrect  = isCorrect
+        self.questionId = questionId
 
 def dictTOQuestion(dictPython):
-    # On estime que le dictionnaire en entrée est déjà de la bonne forme car cette fonction sera utilisée seulement dans le cadre
-    # de la fonction DefaultPostQuestion()
-    # 1) Recherche de la bonne réponse parmis les 4 réponses possibles : 
-    answers = dictPython["possibleAnswers"]
-    trueA = 0
-    for i in range (len(answers)):
-        if answers[i]["isCorrect"]:
-            trueA = i + 1
-    # 2) Mapping des clés du dictionnaire avec les attributs de la classe Question :
-    cond, lst_txt_answers = answersGoodSize(answers)
-    if cond :
-        returnedQuestion = Question(dictPython["position"], dictPython["title"], dictPython["text"], dictPython["image"], lst_txt_answers[0], lst_txt_answers[1], lst_txt_answers[2], lst_txt_answers[3],trueA)
-    else :
-        returnedQuestion = Question(dictPython["position"], dictPython["title"], dictPython["text"], dictPython["image"], answers[0]["text"], answers[1]["text"], answers[2]["text"], answers[3]["text"],trueA)
-    return returnedQuestion
+    # On doit distinguer l'objet Question de l'objet Reponse car l'attribut ID_question dans la table Reponse est créé en fonction de la question choisie
+    newQuestion = Question(dictPython["position"], dictPython["title"], dictPython["text"], dictPython["image"])
+    return newQuestion
 
-def answersGoodSize(answers):
-    """
-    L'objectif de cette méthode est de vérifier que le dictionnaire des réponses possibles à la
-    question est bien de la bonne taille (NB_ANSWERS_MAX du Cahier des Charges)
-    Cette fonction renvoie donc la liste de tous les text de reponse en complétant avec des string 
-    vides si la taille initilale est plus petite que la taille voulue.
-    """
-    cond = False
-    lst_txt_answers = []
-    if len(answers) < NB_ANSWERS_MAX:
-        cond = True
-        # 1) On rempli la liste avec toutes les réponses déjà existantes
-        for i in range (len(answers)):
-            lst_txt_answers += [answers[i]["text"]]
-        # 2) on complète la liste avec des réponse par défaut vides
-        for j in range (NB_ANSWERS_MAX - len(answers)):
-            lst_txt_answers += [""]
-    return cond,lst_txt_answers
-    
+def dictToReponses(dictPython,idQuestion):
+    answers = dictPython["possibleAnswers"]
+    responses = []
+    for answer in answers:
+        text = answer[JSON_POSSIBLE_ANSWERS_KEYS[0]]
+        isCorrect = answer[JSON_POSSIBLE_ANSWERS_KEYS[1]]
+        newResponse = Reponse(text,isCorrect,idQuestion)
+        responses += [newResponse]
+    return responses
+
+def tupleToQuestion(tuple_row):
+    returned_question = Question(tuple_row[0],tuple_row[1],tuple_row[2],tuple_row[3])
+    return returned_question
+
+def tupleToReponse(tuple_row):
+    returned_response = Reponse(tuple_row[0],tuple_row[1],tuple_row[2])
+    return returned_response
+
+def tuplesTOjsonObject(tuple_question,tuple_answers):
+    json_returned = {}
+    # (A) coté question :
+    questionObject = tupleToQuestion(tuple_question)
+    json_returned[JSON_QUESTION_KEYS[0]] = questionObject.title
+    json_returned[JSON_QUESTION_KEYS[1]] = questionObject.text
+    json_returned[JSON_QUESTION_KEYS[2]] = questionObject.image
+    json_returned[JSON_QUESTION_KEYS[3]] = questionObject.position
+    json_returned[JSON_QUESTION_KEYS[4]] = []
+    # (B) coté reponses :
+    for answer in tuple_answers:
+        responseObject = tupleToReponse(answer)
+        # Ne pas oublier de convertir les entier 1/0 en boolean True/False
+        isCorrect = False
+        if responseObject.isCorrect == 1 :
+            isCorrect = True
+        json_returned[JSON_QUESTION_KEYS[4]] += [{
+            JSON_POSSIBLE_ANSWERS_KEYS[0] : responseObject.text,
+            JSON_POSSIBLE_ANSWERS_KEYS[1] : isCorrect
+        }]
+    return json.dumps(json_returned,ensure_ascii=False)
 
 def DefaultPostQuestion(jsonQuestion):
     # (1) Vérifier la forme et le contenu du json en voyé en requete) <- à voir si on l'implémente...
@@ -79,12 +80,17 @@ def DefaultPostQuestion(jsonQuestion):
     # 4) Etapes pour ajouter à la base :
     # A) Transformer JSON en objet Question
     questionObject = dictTOQuestion(jsonQuestion)
-    # B) Créer requete à partir de cet objet
-    sqlInsert = createSQLRequestInsert(questionObject)
-    # C) Inserer dans la BDD
+    # B) Créer la requête SQL pour l'insérer dans la Table Questions et l'insérer
+    sqlInsert = insertINTOQuestion(questionObject)
     insertData(sqlInsert)
-    # D) En finalité, la requete doit renvoyer l'ID de la question récement insérée :
+    # C) Récupérer l'ID de la question pour la renvoyer à la fin 
     last_id = selectData(getlastID())[0][0]
+    # D) Utiliser l'ID récupérée pour transformer le JSON en liste de Reponses
+    lstResponses = dictToReponses(jsonQuestion,last_id)
+    # E) Création requete SQL pour insérer chaque réponse associée à la Question
+    for response in lstResponses:
+        sqlInsert = insertINTOResponse(response)
+        insertData(sqlInsert)
     return last_id
 
 def isJSONShapeOk(jsonQuestion):
@@ -96,8 +102,8 @@ def isJSONShapeOk(jsonQuestion):
     condition = True
     cnt = 0
     # Test sur les clés de niveau 1 :
-    while condition and cnt < len(QUESTION_KEYS) :
-        if QUESTION_KEYS[cnt] not in jsonQuestion:
+    while condition and cnt < len(JSON_QUESTION_KEYS) :
+        if JSON_QUESTION_KEYS[cnt] not in jsonQuestion:
             condition = False
         cnt += 1
     if not condition :
@@ -106,8 +112,8 @@ def isJSONShapeOk(jsonQuestion):
         # Test sur les clés de niveau 2 :
         cnt2 = 0
         for answer in jsonQuestion["possibleAnswers"]:
-            while condition and cnt2 < len(POSSIBLE_ANSWERS_KEYS):
-                if POSSIBLE_ANSWERS_KEYS[cnt2] not in answer:
+            while condition and cnt2 < len(JSON_POSSIBLE_ANSWERS_KEYS):
+                if JSON_POSSIBLE_ANSWERS_KEYS[cnt2] not in answer:
                     condition = False
                 cnt2 += 1
             cnt2=0
@@ -153,9 +159,12 @@ def checkModifiedPosition(questionId,jsonQuestion):
     return True
 
 def DeleteAllQuestion():
-    sqlRequest1, sqlRequest2 = truncateTable()
+    sqlRequest1, sqlRequest2 = truncateTable("Questions")
+    sqlRequest3, sqlRequest4 = truncateTable("Reponses")
     insertData(sqlRequest1)
     insertData(sqlRequest2)
+    insertData(sqlRequest3)
+    insertData(sqlRequest4)
     return 1
 
 def DeleteAQuestion(questionId):
@@ -164,13 +173,16 @@ def DeleteAQuestion(questionId):
     current_question = selectData(sqlRequest)
     # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
     if len(current_question) == 0 :
-        # Si la liste est vide, on retourne l'entier -1 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
+        # Si la liste est vide, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
         return -2
     # Sinon on traite la modification de la question
     # 1) On ajuste les valeurs des positions suppérieure à la position de la question que l'on va supprimer
     AjustPosition(questionId)
     # 2) Puis on supprime la question en fonction de l'ID selectionné
     sqlRequest = delete1Question(questionId)
+    insertData(sqlRequest)
+    # 3) on supprime également les réponses associées à cette question dans la table des Reponses
+    sqlRequest = deleteResponses(questionId)
     insertData(sqlRequest)
     return 1
 
@@ -189,10 +201,10 @@ def ModifyAQuestion(questionId,jsonQuestion):
     current_question = selectData(sqlRequest)
     # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
     if len(current_question) == 0 :
-        # Si la liste est vide, on retourne l'entier -1 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
+        # Si la liste est vide, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
         return -2
     # Sinon on traite la modification de la question
-    #   (A) Vérifier la forme et le contenu du json en voyé en requete) <- à voir si on l'implémente...
+    #   (A) Vérifier la forme et le contenu du json envoyé en requete) <- à voir si on l'implémente...
     if not isJSONShapeOk(jsonQuestion) :
         return -1
     #   (B) Vérifier l'unicité de la bonne réponse
@@ -200,11 +212,37 @@ def ModifyAQuestion(questionId,jsonQuestion):
         return -1
     #   (C) Vérifier et modifier les valeurs des positions alentours
     if not checkModifiedPosition(questionId,jsonQuestion):
-        return -1                           
+        return -1  
     #   (D) Transformer JSON en objet Question
     questionObject = dictTOQuestion(jsonQuestion)
     #   (E) Update de la question correspondant à l'ID recherché
     sqlRequest = updateQuestionByID(questionId,questionObject)
     insertData(sqlRequest)
+    #   (F) Transformer JSON en listes d'objets Reponses
+    lstResponses = dictToReponses(jsonQuestion,questionId)
+    #   (G) Update des reponses correspondantes à l'ID recherché (on va simplement supprimer les auciennes et ajouter les nouvelles car le changement d'id de la reponse n'a pas d'impact sur le fonctionnement de l'application)
+    sqlRequest = deleteResponses(questionId)
+    insertData(sqlRequest)
+    for response in lstResponses:
+        sqlInsert = insertINTOResponse(response)
+        insertData(sqlInsert)
     return 1
 
+def getAQuestion(questionId):
+    # (1) Récupération de la ligne qui correspond à la question dans la BDD
+    sqlRequest = getQuestionByIDwithoutID(questionId)
+    current_question = selectData(sqlRequest)  
+    # Lorsque la question récupérée est vide, on sait qu'il n'y a pas l'ID correspondant dans la base de donnée
+    if len(current_question) == 0 :
+        # Si la liste est vide, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
+        return -2
+    # (2) Maintenant qu'on est sûr que l'ID existe, il faut transformer les lignes des tables Questions et Reponses en JSON bien formaté
+    sqlRequest = getResponseByQuestionIDwithoutID(questionId)
+    current_answers = selectData(sqlRequest)
+    jsonObject = tuplesTOjsonObject(current_question[0],current_answers)
+    return jsonObject
+
+def getIdbyPosition(questionPosition):
+    sqlRequest = getIDwithPosition(questionPosition)
+    questionId = selectData(sqlRequest)
+    return questionId

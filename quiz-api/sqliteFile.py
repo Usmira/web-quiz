@@ -1,7 +1,11 @@
 import sqlite3
 
-DB_COLUMNS_STG = "(Position, Titre, Image, Texte, Rep_1, Rep_2, Rep_3, Rep_4, Good_Rep)"
+DB_COLUMNS_STG = "Position, Titre, Image, Texte, Rep_1, Rep_2, Rep_3, Rep_4, Good_Rep"
 DB_COLUMNS_LST = ['Position', 'Titre', 'Image', 'Texte', 'Rep_1', 'Rep_2', 'Rep_3', 'Rep_4', 'Good_Rep']
+DB_QUESTIONS_COLUMNS_STG = "Position, Titre, Image, Texte"
+DB_QUESTIONS_COLUMNS_LST = ['Position', 'Titre', 'Image', 'Texte']
+DB_REPONSES_COLUMNS_STG = "Texte , isCorrect, Question_ID"
+DB_REPONSES_COLUMNS_LST = ["Texte" , "isCorrect", "Question_ID"]
 
 def insertData(sqlRequest):
     db_connection = sqlite3.connect("questions.db") # Connexion à la BDD
@@ -22,8 +26,12 @@ def selectData(sqlRequest):
     cur.execute("commit")
     return rows
 
-def createSQLRequestInsert(pythonobject):
-    sqlRequest = 'INSERT INTO Questions ' + DB_COLUMNS_STG + ' VALUES (' + str(pythonobject.position) + ',"' + pythonobject.title + '","' + pythonobject.text + '","' + pythonobject.image + '","' + pythonobject.a1 + '","' + pythonobject.a2 + '","' + pythonobject.a3 + '","' + pythonobject.a4 + '",' + str(pythonobject.trueA) + ');'
+def insertINTOQuestion(pythonobject):
+    sqlRequest = 'INSERT INTO Questions (' + DB_QUESTIONS_COLUMNS_STG + ') VALUES (' + str(pythonobject.position) + ',"' + pythonobject.title + '","' + pythonobject.text + '","' + pythonobject.image + '");'
+    return sqlRequest
+
+def insertINTOResponse(pythonobject):
+    sqlRequest = 'INSERT INTO Reponses (' + DB_REPONSES_COLUMNS_STG + ') VALUES ("' + pythonobject.text + '",' + str(pythonobject.isCorrect) + ',' + str(pythonobject.questionId) + ');'
     return sqlRequest
 
 def getAllPositions(tableName):
@@ -46,19 +54,35 @@ def getlastID():
     sqlRequest = "SELECT ID FROM Questions ORDER BY ID DESC LIMIT 1"
     return sqlRequest
 
-def truncateTable():
-    sqlRequest1 = "DELETE FROM Questions;"
-    sqlRequest2 = "DELETE FROM sqlite_sequence WHERE name = 'Questions';"
+def truncateTable(tablename):
+    sqlRequest1 = "DELETE FROM " + tablename + ";"
+    sqlRequest2 = "DELETE FROM sqlite_sequence WHERE name = '" + tablename + "';"
     return sqlRequest1,sqlRequest2
 
 def delete1Question(questionId):
     sqlRequest = "DELETE FROM Questions WHERE ID = " + str(questionId) + ";"
     return sqlRequest
 
+def deleteResponses(questionId):
+    sqlRequest = "DELETE FROM Reponses WHERE Question_ID = " + str(questionId) + ";"
+    return sqlRequest
+
 def getQuestionByID(questionId):
     sqlRequest = "SELECT * FROM Questions WHERE ID = " + str(questionId) + ";"
     return sqlRequest
 
+def getQuestionByIDwithoutID(questionId):
+    sqlRequest = "SELECT " + DB_QUESTIONS_COLUMNS_STG + " FROM Questions WHERE ID = " + str(questionId) + ";"
+    return sqlRequest
+
+def getResponseByQuestionIDwithoutID(questionId):
+    sqlRequest = "SELECT " + DB_REPONSES_COLUMNS_STG + " FROM Reponses WHERE Question_ID = " + str(questionId) + ";"
+    return sqlRequest
+
 def updateQuestionByID(questionId,pythonobject):
-    sqlRequest = 'UPDATE Questions SET ' + DB_COLUMNS_LST[0] + ' = ' + str(pythonobject.position) + ', ' + DB_COLUMNS_LST[1] + ' = "' + str(pythonobject.title) + '", ' + DB_COLUMNS_LST[2] + ' = "' + pythonobject.text + '", ' + DB_COLUMNS_LST[3] + ' = "' + pythonobject.image + '", ' + DB_COLUMNS_LST[4] + ' = "' + pythonobject.a1 + '", ' + DB_COLUMNS_LST[5] + ' = "' + pythonobject.a2 + '", ' + DB_COLUMNS_LST[6] + ' = "' + pythonobject.a3 + '", ' + DB_COLUMNS_LST[7] + ' = "' + pythonobject.a4 + '", ' + DB_COLUMNS_LST[8] + ' = ' + str(pythonobject.trueA) + ' WHERE ID = ' + str(questionId) + ';'
+    sqlRequest = 'UPDATE Questions SET ' + DB_QUESTIONS_COLUMNS_LST[0] + ' = ' + str(pythonobject.position) + ', ' + DB_QUESTIONS_COLUMNS_LST[1] + ' = "' + str(pythonobject.title) + '", ' + DB_QUESTIONS_COLUMNS_LST[2] + ' = "' + pythonobject.text + '", ' + DB_QUESTIONS_COLUMNS_LST[3] + ' = "' + pythonobject.image + '" WHERE ID = ' + str(questionId) + ';'
+    return sqlRequest
+
+def getIDwithPosition(questionPosition):
+    sqlRequest = "SELECT ID FROM Questions WHERE Position = " + str(questionPosition) + ";"
     return sqlRequest
