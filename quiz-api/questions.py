@@ -304,3 +304,9 @@ def whereIsTrueRep(questionPosition):
             responsePosition = cnt + 1
         cnt += 1
     return responsePosition
+
+def DeleteAllParticipation():
+    sqlRequest1, sqlRequest2 = truncateTable("Participations")
+    insertData(sqlRequest1)
+    insertData(sqlRequest2)
+    return 1

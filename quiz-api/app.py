@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
-from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation
+from questions import DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation, DeleteAllParticipation
 
 AUTH_PASSWORD = "flask2023"
 
@@ -104,6 +104,17 @@ def postParticipation():
     if payload_retour == -2 :
         return 'Bad request', 400
     return payload_retour ,200
+
+@app.route('/participations/all', methods=['DELETE'])
+def deleteAllParticipations():
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token)  
+    except:
+        return 'Unauthorized', 401   
+    DeleteAllParticipation()
+    return {}, 204
 
 if __name__ == "__main__":
     app.run()
