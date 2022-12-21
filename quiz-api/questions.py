@@ -42,13 +42,15 @@ def tupleToQuestion(tuple_row):
     return returned_question
 
 def tupleToReponse(tuple_row):
-    returned_response = Reponse(tuple_row[0],tuple_row[1],tuple_row[2])
-    return returned_response
+    returned_response = Reponse(tuple_row[1],tuple_row[2],tuple_row[3])
+    reponseId = tuple_row[0]
+    return reponseId,returned_response
 
-def tuplesTOjsonObject(tuple_question,tuple_answers):
+def tuplesTOjsonObject(tuple_question,tuple_answers,questionId):
     json_returned = {}
     # (A) coté question :
     questionObject = tupleToQuestion(tuple_question)
+    json_returned["id"]                  = questionId
     json_returned[JSON_QUESTION_KEYS[0]] = questionObject.title
     json_returned[JSON_QUESTION_KEYS[1]] = questionObject.text
     json_returned[JSON_QUESTION_KEYS[2]] = questionObject.image
@@ -56,14 +58,15 @@ def tuplesTOjsonObject(tuple_question,tuple_answers):
     json_returned[JSON_QUESTION_KEYS[4]] = []
     # (B) coté reponses :
     for answer in tuple_answers:
-        responseObject = tupleToReponse(answer)
+        reponseId, responseObject = tupleToReponse(answer)
         # Ne pas oublier de convertir les entier 1/0 en boolean True/False
         isCorrect = False
         if responseObject.isCorrect == 1 :
             isCorrect = True
         json_returned[JSON_QUESTION_KEYS[4]] += [{
             JSON_POSSIBLE_ANSWERS_KEYS[0] : responseObject.text,
-            JSON_POSSIBLE_ANSWERS_KEYS[1] : isCorrect
+            JSON_POSSIBLE_ANSWERS_KEYS[1] : isCorrect,
+            "id"                          : reponseId  
         }]
     return json.dumps(json_returned,ensure_ascii=False)
 
@@ -240,9 +243,9 @@ def getAQuestion(questionId):
         # Si la liste est vide, on retourne l'entier -2 qui sera traité dans notre ENDPOINT pour afficher l'erreur 404
         return -2
     # (2) Maintenant qu'on est sûr que l'ID existe, il faut transformer les lignes des tables Questions et Reponses en JSON bien formaté
-    sqlRequest      = getResponseByQuestionIDwithoutID(questionId)
+    sqlRequest      = getResponseByQuestionID(questionId)
     current_answers = selectData(sqlRequest)
-    jsonObject      = tuplesTOjsonObject(current_question[0],current_answers)
+    jsonObject      = tuplesTOjsonObject(current_question[0],current_answers,questionId)
     return jsonObject
 
 def getIdbyPosition(questionPosition):
@@ -320,7 +323,17 @@ def DeleteAllParticipation():
     return 1
 
 def quizInfo():
-
-    return 1
-
-print(calcultimenow())
+    # On récupère d'abord le nombre de question du quiz
+    sqlRequest = getAllPositions("Questions")
+    nb_questions = len(selectData(sqlRequest))
+    # On forme ensuite le tableau des scores :
+    sqlRequest = getAllScoresSorted()
+    participations_sorted = selectData(sqlRequest)
+    scores = []
+    for participation in participations_sorted:
+        scores.append({
+            "playerName" : participation[0],
+            "score"      : participation[1],
+            "date"       : participation[2]   
+        })
+    return {"size":nb_questions,"scores":scores}

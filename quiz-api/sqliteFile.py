@@ -79,6 +79,10 @@ def getResponseByQuestionIDwithoutID(questionId):
     sqlRequest = "SELECT " + DB_REPONSES_COLUMNS_STG + " FROM Reponses WHERE Question_ID = " + str(questionId) + ";"
     return sqlRequest
 
+def getResponseByQuestionID(questionId):
+    sqlRequest = "SELECT * FROM Reponses WHERE Question_ID = " + str(questionId) + ";"
+    return sqlRequest
+
 def updateQuestionByID(questionId,pythonobject):
     sqlRequest = 'UPDATE Questions SET ' + DB_QUESTIONS_COLUMNS_LST[0] + ' = ' + str(pythonobject.position) + ', ' + DB_QUESTIONS_COLUMNS_LST[1] + ' = "' + str(pythonobject.title) + '", ' + DB_QUESTIONS_COLUMNS_LST[2] + ' = "' + pythonobject.text + '", ' + DB_QUESTIONS_COLUMNS_LST[3] + ' = "' + pythonobject.image + '" WHERE ID = ' + str(questionId) + ';'
     return sqlRequest
@@ -89,4 +93,8 @@ def getIDwithPosition(questionPosition):
 
 def addAParticipation(playerName,score,date):
     sqlRequest = 'INSERT INTO Participations (PlayerName,Score,Date) VALUES ("' + playerName + '",' + str(score) + ',"' + date + '");' 
+    return sqlRequest
+
+def getAllScoresSorted():
+    sqlRequest = "SELECT PlayerName,Score,Date FROM Participations ORDER BY Score DESC;"
     return sqlRequest

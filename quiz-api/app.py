@@ -16,7 +16,7 @@ def hello_world():
 @app.route('/quiz-info', methods=['GET'])
 def GetQuizInfo():
     payload_returned = quizInfo()
-    return {"size": 0, "scores": []}, 200
+    return payload_returned, 200
 
 @app.route('/login', methods=["POST"])
 def PostPassword():
@@ -50,10 +50,10 @@ def DeleteAllQuestions():
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token)  
-        DeleteAllQuestion()
-        return {} ,204
     except:
         return 'Unauthorized', 401
+    DeleteAllQuestion()
+    return {} ,204
 
 @app.route('/questions/<questionId>',methods = ['DELETE'])
 def DeleteQuestionByID(questionId):
@@ -61,26 +61,26 @@ def DeleteQuestionByID(questionId):
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token) 
-        result = DeleteAQuestion(questionId)
-        if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
-            return 'Not Found', 404
-        return {}, 204
     except:
         return 'Unauthorized', 401
+    result = DeleteAQuestion(questionId)
+    if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+        return 'Not Found', 404
+    return {}, 204
 
-@app.route('/questions/<quesionId>',methods=["PUT"])
-def ModifyQuestionByID(quesionId):
+@app.route('/questions/<questionId>',methods=["PUT"])
+def ModifyQuestionByID(questionId):
     try:
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
         decode_token(token) 
-        question = request.get_json()
-        result = ModifyAQuestion(quesionId,question)
-        if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
-            return 'Not Found', 404
-        return {}, 204
     except:
         return 'Unauthorized', 401
+    question = request.get_json()
+    result = ModifyAQuestion(questionId,question)
+    if result == -2 :                                       # pas oublier de gérer le cas position trop grande par rapport au nombre de questions
+        return 'Not Found', 404
+    return {}, 204
 
 @app.route('/questions/<questionId>', methods=['GET'])
 def getQuestionByID(questionId):
