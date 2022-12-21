@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from jwt_utils import build_token,decode_token
 from questions import quizInfo, DefaultPostQuestion, DeleteAllQuestion,DeleteAQuestion,ModifyAQuestion, getAQuestion, getIdbyPosition, defaultPostParticipation, DeleteAllParticipation
+from rebuild import rebuildBDD
 
 AUTH_PASSWORD = "flask2023"
 
@@ -12,6 +13,19 @@ CORS(app)
 def hello_world():
     result = "hello world"
     return {"result":result}
+
+@app.route('/rebuild-db', methods=['POST'])
+def rebuildDB():
+    # 1) Try/except sur la récupération et le décodage du token :
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
+        decode_token(token)                        
+    except:
+        # 2) Connexion refusée par le serveur
+        return 'Unauthorized', 401
+    rebuildBDD()
+    return 'Ok', 200
 
 @app.route('/quiz-info', methods=['GET'])
 def GetQuizInfo():

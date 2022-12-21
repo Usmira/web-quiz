@@ -6,9 +6,10 @@ DB_QUESTIONS_COLUMNS_STG = "Position, Titre, Image, Texte"
 DB_QUESTIONS_COLUMNS_LST = ['Position', 'Titre', 'Image', 'Texte']
 DB_REPONSES_COLUMNS_STG = "Texte , isCorrect, Question_ID"
 DB_REPONSES_COLUMNS_LST = ["Texte" , "isCorrect", "Question_ID"]
+DB_NAME = "questions.db"
 
 def insertData(sqlRequest):
-    db_connection = sqlite3.connect("questions.db") # Connexion à la BDD
+    db_connection = sqlite3.connect(DB_NAME) # Connexion à la BDD
     db_connection.isolation_level = None
     cur = db_connection.cursor()
     cur.execute("begin")                            # start transaction
@@ -17,7 +18,7 @@ def insertData(sqlRequest):
     return insertion_result
 
 def selectData(sqlRequest):
-    db_connection = sqlite3.connect("questions.db")
+    db_connection = sqlite3.connect(DB_NAME)
     db_connection.isolation_level = None
     cur = db_connection.cursor()
     cur.execute("begin")
