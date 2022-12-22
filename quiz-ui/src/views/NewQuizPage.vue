@@ -13,13 +13,14 @@ export default {
   name: "NewQuizPage",
   data() {
     return {
-      "username": ''
+      username: ''
     };
   },
   methods: {
     launchNewQuiz() {
       console.log("Launch new quiz with", this.username);
       participationStorageService.savePlayerName(this.username);
+      this.$router.push('/questions');
     },
   },
   async created() {

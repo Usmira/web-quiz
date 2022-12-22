@@ -13,7 +13,7 @@ export default {
   name: "HomePage",
   data() {
     return {
-      "registeredScores": []
+      registeredScores: []
     };
   },
   async created() {

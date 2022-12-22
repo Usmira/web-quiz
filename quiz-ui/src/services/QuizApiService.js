@@ -31,6 +31,15 @@ export default {
     return this.call("get", "quiz-info");
   },
   getQuestion(position) {
-    // not implemented
+    var urlBaseRequest = "questions?position="
+    var urlRequest = urlBaseRequest.concat('', position);
+    return this.call("get", urlRequest);
+  },
+  getResult(playerName, answers) {
+    var data = {
+      playerName: playerName,
+      answers: answers
+    };
+    return this.call("post", "participations", data);
   }
 };
