@@ -184,3 +184,23 @@ nav {
   width: 400px;
   height: 80px;
 }
+
+.question-image {
+  max-width: 400px;
+  max-height: 200px;
+}
+
+#image {
+  width: 400px;
+  height: auto;
+  border-radius: 20px;
+}
+
+.upload-image-container {
+  display: flex;
+  background-color: #fff;
+  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 25px;
+}

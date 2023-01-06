@@ -15,10 +15,6 @@
         <textarea class="text-input" type="text" v-model="newQuestion.text"></textarea>
       </div>
       <div>Upload Image</div>
-      <!-- <div>
-        <input type="file" @change="uploadFile" ref="file">
-        <button @click="submitFile">Upload!</button>
-      </div> -->
       <div>Réponses possibles :</div>
       <div class="create-a-response-container" v-for="(reponse, index) in answersForm">
         <div class="answer-form-item">
@@ -45,8 +41,6 @@ export default {
   name: "NewQuestionPage",
   data() {
     return {
-      //images: null,
-
       answersForm: 0,
       correctAnswer: 0,
       newQuestion: {
@@ -116,19 +110,6 @@ export default {
       var token = participationStorageService.getToken();
       return await quizApiService.checkAdmin(token);
     },
-    // //pour upload un fichier
-    // uploadFile() {
-    //   this.Images = this.$refs.file.files[0];
-    // },
-    // submitFile() {
-    //   const formData = new FormData();
-    //   formData.append('file', this.Images);
-    //   const headers = { 'Content-Type': 'multipart/form-data' };
-    //   axios.post('https://httpbin.org/post', formData, { headers }).then((res) => {
-    //     res.data.files; // binary representation of the file
-    //     res.status; // HTTP status
-    //   });
-    // }
   },
   async created() {
     this.tryAdmin();
@@ -156,9 +137,6 @@ export default {
         this.answersBoolean.push(false);
       }
     }
-    //this.newQuestion.possibleAnswers = requestAPIresult.data.possibleAnswers;
-
-
   }
 }
 </script> 

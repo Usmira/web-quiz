@@ -14,11 +14,11 @@
         <div>Intitulé de la question : </div>
         <textarea class="text-input" type="text" v-model="newQuestion.text"></textarea>
       </div>
-      <div>Upload Image</div>
-      <!-- <div>
-        <input type="file" @change="uploadFile" ref="file">
-        <button @click="submitFile">Upload!</button>
-      </div> -->
+      <div class="upload-image-container">
+        <input type="file" id="file" accept="image/jpeg, image/png, image/jpg" @click="newImage">
+        <img id="image">
+      </div>
+
       <div>Réponses possibles :</div>
       <div class="create-a-response-container" v-for="(reponse, index) in answersForm">
         <div class="answer-form-item">
@@ -41,12 +41,12 @@
 import quizApiService from "@/services/QuizApiService";
 import participationStorageService from "@/services/ParticipationStorageService";
 
+
+
 export default {
   name: "NewQuestionPage",
   data() {
     return {
-      //images: null,
-
       answersForm: 0,
       correctAnswer: 0,
       newQuestion: {
@@ -60,6 +60,9 @@ export default {
     }
   },
   methods: {
+    setImage(base64Image) {
+      this.newQuestion.image = base64Image;
+    },
     async saveQuestion() {
       //fonction qui doit post la nouvelle question
       //on prépare d'abord la data :
@@ -112,23 +115,26 @@ export default {
       }
       this.answersBoolean[index] = true;
     },
+    newImage() {
+      //fonction pour venir récupérer l'image uploadé et l'afficher sur la page html
+      const file = document.querySelector("#file")
+      file.addEventListener("change", () => {
+        const reader = new FileReader()
+
+        reader.addEventListener("load", () => {  // Utilisation d'une arrow function pour hériter de this de ma composante
+          // Vérifions si reader.result est défini et valide
+          if (reader.result) {
+            document.querySelector("#image").src = reader.result
+            this.newQuestion.image = reader.result
+          }
+        });
+        reader.readAsDataURL(file.files[0])
+      });
+    },
     async tryAdmin() {
       var token = participationStorageService.getToken();
       return await quizApiService.checkAdmin(token);
     },
-    // //pour upload un fichier
-    // uploadFile() {
-    //   this.Images = this.$refs.file.files[0];
-    // },
-    // submitFile() {
-    //   const formData = new FormData();
-    //   formData.append('file', this.Images);
-    //   const headers = { 'Content-Type': 'multipart/form-data' };
-    //   axios.post('https://httpbin.org/post', formData, { headers }).then((res) => {
-    //     res.data.files; // binary representation of the file
-    //     res.status; // HTTP status
-    //   });
-    // }
   },
   async created() {
     this.tryAdmin();
