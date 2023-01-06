@@ -20,7 +20,7 @@
               Pseudo
             </div>
             <div class="player-score-titre">
-              Score
+              Score /{{ nbQuestions }}
             </div>
           </div>
           <div class="score-line" v-for="(scoreEntry, index) in registeredScores" v-bind:key="scoreEntry.date">
@@ -51,7 +51,8 @@ export default {
     return {
       playerName: "",
       score: 0,
-      registeredScores: []
+      registeredScores: [],
+      nbQuestions: 0
     }
   },
   methods: {
@@ -62,10 +63,14 @@ export default {
     async getScores() {
       var quizInfoApiResult = await quizApiService.getQuizInfo();
       this.registeredScores = quizInfoApiResult.data.scores;
+    },
+    async getNbQuestions() {
+      var quizInfo = await quizApiService.getQuizInfo();
+      this.nbQuestions = quizInfo.data.size;
     }
   },
   async created() {
-    // ATTENTION !!!  si on laisse ainsi, à chaque actualisation de page on sauvegarde un nouveau score identique
+    this.getNbQuestions();
     //calcul du score du joueur :
     // on récupère la liste des réponses et le nom du joueur stockés en variables locales
     var playerName = participationStorageService.getPlayerName();

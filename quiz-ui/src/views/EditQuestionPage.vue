@@ -14,7 +14,12 @@
         <div>Intitulé de la question : </div>
         <textarea class="text-input" type="text" v-model="newQuestion.text"></textarea>
       </div>
-      <div>Upload Image</div>
+
+      <div class="upload-image-container">
+        <input type="file" id="file" accept="image/jpeg, image/png, image/jpg" @click="newImage">
+        <img id="image" :src="newQuestion.image">
+      </div>
+
       <div>Réponses possibles :</div>
       <div class="create-a-response-container" v-for="(reponse, index) in answersForm">
         <div class="answer-form-item">
@@ -105,6 +110,22 @@ export default {
         this.answersBoolean.push(false);
       }
       this.answersBoolean[index] = true;
+    },
+    newImage() {
+      //fonction pour venir récupérer l'image uploadé et l'afficher sur la page html
+      const file = document.querySelector("#file")
+      file.addEventListener("change", () => {
+        const reader = new FileReader()
+
+        reader.addEventListener("load", () => {  // Utilisation d'une arrow function pour hériter de this de ma composante
+          // Vérifions si reader.result est défini et valide
+          if (reader.result) {
+            this.newQuestion.image = reader.result
+            document.querySelector("#image").src = this.newQuestion.image
+          }
+        });
+        reader.readAsDataURL(file.files[0])
+      });
     },
     async tryAdmin() {
       var token = participationStorageService.getToken();

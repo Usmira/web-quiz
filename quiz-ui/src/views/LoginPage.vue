@@ -1,11 +1,11 @@
 <template>
   <div class="main-container">
     <div class="main-element">
-      <h1>Login as Admin</h1>
-      <p>password</p>
+      <h1>Connexion Admin</h1>
+      <p>Mot de passe</p>
       <input class="name-input" type="password" v-model="password" />
       <div>{{ message }}</div>
-      <button class="start-btn" @click="loginAsAdmin">Log In</button>
+      <button class="start-btn" @click="loginAsAdmin">Me connecter</button>
 
     </div>
   </div>

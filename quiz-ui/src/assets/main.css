@@ -21,16 +21,17 @@ nav {
   padding: 0px 25px;
 }
 
-.nav-element {
+.nav-sub-element {
   color: #d3b274;
   text-decoration: none;
+  margin: 0px 10px;
 }
 
-.nav-element:hover {
+.nav-sub-element:hover {
   color: #97927c;
 }
 
-.nav-element:active {
+.nav-sub-element:active {
   color: #546c7c;
 }
 

@@ -14,6 +14,7 @@
         <div>Intitulé de la question : </div>
         <textarea class="text-input" type="text" v-model="newQuestion.text"></textarea>
       </div>
+
       <div class="upload-image-container">
         <input type="file" id="file" accept="image/jpeg, image/png, image/jpg" @click="newImage">
         <img id="image">
