@@ -1,6 +1,9 @@
 <template>
-  <h1>QuestionManager</h1>
-  <QuestionDisplay :question="question" :nbQuestion="nbQuestion" @answer-selected="answerClickedHandler" />
+  <div class="main-container">
+    <div class="main-element">
+      <QuestionDisplay :question="question" :nbQuestion="nbQuestion" @answer-selected="answerClickedHandler" />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -36,7 +39,6 @@ export default {
     },
     async answerClickedHandler(answerSelected) {
       // ### 1) stockage de la réponse utilisateur
-      console.log("la question selectionnée est :", answerSelected);
       // Doit stocker la dernière réponse donnée (recupération de la liste getParticipationScore() 
       var participationScore = participationStorageService.getParticipationScore();
       // Conversion en Array d'Int pour poouvoir manipuler facilement l'objet
@@ -58,7 +60,6 @@ export default {
     }
   },
   async created() {
-    console.log("Composant QuestionManager 'created'");
     //initialisation de la variable locale hasParticipated à false pour que le score soit pris en compte à la fin du questionnaire
     participationStorageService.saveHasParticipated(false);
 
@@ -67,7 +68,6 @@ export default {
 
     var quizInfoApiResult = await quizApiService.getQuizInfo();
     this.nbQuestion = quizInfoApiResult.data.size;
-    console.log("nb questions", this.nbQuestion);
 
     // initialisons la variable locale participationScore qui contient la liste des réponses entrées par l'utilisateur
     var participationScore = new Array(this.nbQuestion).fill(0);

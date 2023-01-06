@@ -32,13 +32,23 @@ def GetQuizInfo():
     payload_returned = quizInfo()
     return payload_returned, 200
 
+@app.route('/check-admin',methods=["POST"])
+def checkAdmin():
+    try:
+        beared_token = request.headers.get('Authorization')
+        token = beared_token.split(" ")[1]                      
+        decode_token(token)   
+        return 'Ok', 200               
+    except:
+        return 'Unauthorized', 401
+
 @app.route('/login', methods=["POST"])
 def PostPassword():
     payload = request.get_json()
     if payload["password"] == AUTH_PASSWORD: #On teste ici si le password est celui voulu (voir password test de postman)
         # Il faut générer un token ici grâce à la librairie importée sur blackboard
         token = build_token()
-        return {"token": token}
+        return {"token": token},200
     else:
         return 'Unauthorized', 401
 
@@ -48,7 +58,7 @@ def PostQuestion():
     try:
         beared_token = request.headers.get('Authorization')
         token = beared_token.split(" ")[1]                      # Le token possède un préfixe qu'il faut supprimer pour pouvoir le décoder
-        decode_token(token)                        
+        decode_token(token)                  
     except:
         # 2) Connexion refusée par le serveur
         return 'Unauthorized', 401

@@ -1,9 +1,21 @@
 <template>
-  <h1>Home page</h1>
-  <div v-for="scoreEntry in registeredScores" v-bind:key="scoreEntry.date">
-    {{ scoreEntry.playerName }} - {{ scoreEntry.score }}
+  <div class="main-container">
+    <div class="main-element">
+      <h1>Bienvenue sur Quiz F1</h1>
+      <RouterLink to="/start-new-quiz-page" class="start-btn">Démarrer le quiz !</RouterLink>
+      <div class="score-container">
+        <div class="score-line" v-for="scoreEntry in registeredScores" v-bind:key="scoreEntry.date">
+          <div class="player-name">
+            {{ scoreEntry.playerName }}
+          </div>
+          <div class="player-score">
+            {{ scoreEntry.score }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <RouterLink to="/start-new-quiz-page">Démarrer le quiz !</RouterLink>
+
 </template>
 
 <script>
@@ -22,5 +34,9 @@ export default {
   }
 };
 </script>
+
+<style>
+
+</style>
 
 

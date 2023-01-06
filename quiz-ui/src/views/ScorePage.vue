@@ -1,18 +1,43 @@
 <template>
-  <h1>Scores</h1>
-  <div>
-    <p>Pseudo : {{ playerName }}</p>
-  </div>
-  <div>
-    <p>Score effectué : {{ score }} </p>
-  </div>
-  <div>
-    <p>Classement général :</p>
-    <div v-for="(scoreEntry, index) in registeredScores" v-bind:key="scoreEntry.date">
-      {{ index + 1 }}e --> {{ scoreEntry.playerName }} - {{ scoreEntry.score }}
+  <div class="main-container">
+    <div class="main-element">
+      <h1>Scores</h1>
+      <div>
+        <p>Pseudo : {{ playerName }}</p>
+      </div>
+      <div>
+        <p>Résultat du quiz : {{ score }} </p>
+      </div>
+      <button class="start-btn" @click="returnHome">Home</button>
+      <div>
+        <p>Classement général</p>
+        <div class="score-container">
+          <div class="score-line-titre">
+            <div class="position-titre">
+              Position
+            </div>
+            <div class="player-name-tire">
+              Pseudo
+            </div>
+            <div class="player-score-titre">
+              Score
+            </div>
+          </div>
+          <div class="score-line" v-for="(scoreEntry, index) in registeredScores" v-bind:key="scoreEntry.date">
+            <div class="position">
+              {{ index + 1 }}e
+            </div>
+            <div class="player-name">
+              {{ scoreEntry.playerName }}
+            </div>
+            <div class="player-score">
+              {{ scoreEntry.score }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <button @click="returnHome">Home</button>
 </template>
 
 <script>
@@ -31,8 +56,6 @@ export default {
   },
   methods: {
     returnHome() {
-      //clear all variables ? Faire attention au bouton retour qui ne doit pas submit un nouveau résultat ! donc il faut faire une condition sur la fonction created () !
-
       // route to home
       this.$router.push('/');
     },
@@ -42,7 +65,6 @@ export default {
     }
   },
   async created() {
-    console.log("ScorePage created")
     // ATTENTION !!!  si on laisse ainsi, à chaque actualisation de page on sauvegarde un nouveau score identique
     //calcul du score du joueur :
     // on récupère la liste des réponses et le nom du joueur stockés en variables locales
@@ -53,10 +75,8 @@ export default {
 
     //Test du booléen hasParticipated : si false => on enregistre le score, et on l'affiche; si true => on affiche seulement le score
     var hasParticipated = participationStorageService.getHasParticipated();
-    console.log("valeur de boolean avant if ", hasParticipated);
     if (hasParticipated == "false") {
       // envoie de la requete à l'API :
-      console.log("on rentre dans le if");
       var endParticipation = await quizApiService.getResult(playerName, participationScoreArray);
       this.playerName = endParticipation.data.playerName;
       this.score = endParticipation.data.score;

@@ -1,11 +1,14 @@
 <template>
   <h1>Question n° {{ question.position }}/{{ nbQuestion }}</h1>
-  <p>Titre : {{ question.title }}</p>
+  <div class="titre-container">
+    <div class="titre-cadre"></div>
+    <div class="titre">{{ question.title }}</div>
+    <div class="titre-cadre"></div>
+  </div>
   <img v-if="question.image" :src="question.image" />
-  <p>Texte : {{ question.text }} </p>
-  <p>Réponses :</p>
-  <div v-for="(reponse, index) in question.possibleAnswers" v-bind:key="reponse.id">
-    <a @click="$emit('answer-selected', index + 1)"> {{ index + 1 }}) {{ reponse.text }}</a>
+  <div class="text">{{ question.text }} </div>
+  <div class="response-container" v-for="(reponse, index) in question.possibleAnswers" v-bind:key="reponse.id">
+    <a class="response-link" @click="$emit('answer-selected', index + 1)">{{ reponse.text }}</a>
   </div>
 </template>
 
@@ -23,7 +26,6 @@ export default {
     }
   },
   async created() {
-    console.log("Composant QuestionDisplay 'created'");
   }
 };
 </script>

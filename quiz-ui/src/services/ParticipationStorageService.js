@@ -25,5 +25,23 @@ export default {
   },
   getLastScore() {
     return window.localStorage.getItem("lastScore");
-  }
+  },
+  saveToken(token) {
+    window.localStorage.setItem("token", token);
+  },
+  getToken() {
+    return window.localStorage.getItem("token");
+  },
+  saveCurrentQuestionPosition(currentPosition) {
+    window.localStorage.setItem("currentPosition", currentPosition);
+  },
+  getCurrentQuestionPosition() {
+    return window.localStorage.getItem("currentPosition");
+  },
+  saveLoginState(loginState) {
+    window.localStorage.setItem("loginState", loginState);
+  },
+  getLoginState() {
+    return window.localStorage.getItem("loginState");
+  },
 };

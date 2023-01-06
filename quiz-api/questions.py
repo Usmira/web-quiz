@@ -77,10 +77,12 @@ def DefaultPostQuestion(jsonQuestion):
 
     # 2) Vérifier l'unicité de la bonne réponse
     if not isUniquegoodAnswer(jsonQuestion) :
+        print("test2")
         return -1
 
     # 3) Vérifier la position de la question
-    if not checkPosition(jsonQuestion):
+    if not checkPosition(jsonQuestion):        
+        print("test3")
         return -1                               # Cas de figure à traiter en fonction de l'implémentation voulue en FRONTEND
 
     # 4) Etapes pour ajouter à la base :
@@ -144,7 +146,10 @@ def checkPosition(jsonQuestion): # add jsonQuestion
         # Cas de figure ou la position dépasse le nombre de question après l'insertion de cette dernière
         # On traitera l'erreur plutot dans la fonction DefaultPostQuestion()
         return False
-    elif current_pos <= len(positions) :
+    elif current_pos < 1 :
+        # Cas de figure où la position est strictement inférieur à 1 :
+        return False
+    elif 0 < current_pos <= len(positions) :
         # On est dans le cas où on doit modifier les positions avant d'insérer la question
         SQLRequest = incrementPosition(current_pos)
         insertData(SQLRequest)
@@ -156,7 +161,7 @@ def checkModifiedPosition(questionId,jsonQuestion):
     old_pos = selectData(get1Position(questionId))[0][0]
     positions = selectData(getAllPositions("Questions"))
     # 1) on doit vérifier que la nouvelle position respecte les règles des positions etablie dans le CDC
-    if futur_pos > len(positions):
+    if futur_pos > len(positions) or futur_pos < 1:
         return False
     # 2) ajuster toutes les pos supérieurs à l'ancienne position
     insertData(decIncrementPosition(old_pos))
